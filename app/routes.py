@@ -1,16 +1,44 @@
 # routes.py
 
+import io
+import os
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from app.services.drive_service import descargar_ultimo_tif_drive
 from app.services.normalizer import normalizar_tif
 from app.services.patcher import generar_patches
 from app.services.cleaner import eliminar_archivo_si_existe, eliminar_directorio_si_existe
-from app.db.crud import guardar_en_bd, listar_imagenes, eliminar_imagen_y_patches, buscar_imagen_por_id
+from app.db.crud import guardar_en_bd, listar_imagenes, eliminar_imagen_y_patches, buscar_imagen_por_id, obtener_archivo_binario, obtener_parche_binario
 from app.services.generator import generar_y_exportar_imagen
 from app.db.request_models import ImagenRequest
 
 router = APIRouter()
+
+@router.get("/descargar_parche/{id}")
+def descargar_parche(id: int):
+    resultado = obtener_parche_binario(id)
+
+    if not resultado:
+        raise HTTPException(status_code=404, detail="❌ Parche no encontrado.")
+
+    nombre_parche, archivo_bytes = resultado
+
+    return StreamingResponse(
+        io.BytesIO(archivo_bytes),
+        media_type="application/octet-stream",
+        headers={"Content-Disposition": f"attachment; filename={nombre_parche}"}
+    )
+
+@router.get("/descargar/{id}")
+def descargar_archivo_desde_bd(id: int):
+    resultado = obtener_archivo_binario(id)
+    if not resultado:
+        return {"status": "error", "mensaje": "❌ Archivo no encontrado."}
+    
+    nombre, binario = resultado
+    return StreamingResponse(io.BytesIO(binario), 
+                             media_type="application/octet-stream",
+                             headers={"Content-Disposition": f"attachment; filename={nombre}"})
 
 @router.post("/generar_imagen")
 def generar_imagen(req: ImagenRequest):

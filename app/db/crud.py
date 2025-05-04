@@ -2,6 +2,7 @@
 import os
 import psycopg2
 from dotenv import load_dotenv, find_dotenv
+from .connection import get_connection
 
 load_dotenv(find_dotenv(), override=True)
 
@@ -18,28 +19,54 @@ def conectar_db():
     return psycopg2.connect(**DB_CONFIG)
 
 def insertar_imagen(nombre_archivo, ruta_local):
+    with open(ruta_local, "rb") as f:
+        contenido_binario = f.read()
+
     conn = conectar_db()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO imagen_normalizada (nombre_archivo, ruta_local, fecha_subida)
-        VALUES (%s, %s, CURRENT_TIMESTAMP) RETURNING id;
-    """, (nombre_archivo, ruta_local))
+        INSERT INTO imagen_normalizada (nombre_archivo, ruta_local, archivo, fecha_subida)
+        VALUES (%s, %s, %s, CURRENT_TIMESTAMP) RETURNING id;
+    """, (nombre_archivo, ruta_local, psycopg2.Binary(contenido_binario)))
     imagen_id = cur.fetchone()[0]
     conn.commit()
     cur.close()
     conn.close()
     return imagen_id
 
+def obtener_archivo_binario(id):
+    conn = conectar_db()
+    cur = conn.cursor()
+    cur.execute("SELECT nombre_archivo, archivo FROM imagen_normalizada WHERE id = %s", (id,))
+    resultado = cur.fetchone()
+    cur.close()
+    conn.close()
+    return resultado if resultado else None
+
 def insertar_parche(imagen_id, nombre_parche, ruta_local):
+    # Leer el archivo binario
+    with open(ruta_local, "rb") as f:
+        archivo_binario = f.read()
+
     conn = conectar_db()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO parche (imagen_normalizada_id, nombre_parche, ruta_local)
-        VALUES (%s, %s, %s);
-    """, (imagen_id, nombre_parche, ruta_local))
+        INSERT INTO parche (imagen_normalizada_id, nombre_parche, ruta_local, archivo)
+        VALUES (%s, %s, %s, %s);
+    """, (imagen_id, nombre_parche, ruta_local, psycopg2.Binary(archivo_binario)))
     conn.commit()
     cur.close()
     conn.close()
+
+def obtener_parche_binario(parche_id):
+    conn = conectar_db()
+    cur = conn.cursor()
+    cur.execute("SELECT nombre_parche, archivo FROM parche WHERE id = %s", (parche_id,))
+    resultado = cur.fetchone()
+    cur.close()
+    conn.close()
+    return resultado
+
 
 def guardar_en_bd(ruta_normalizada, carpeta_patches):
     nombre_archivo = os.path.basename(ruta_normalizada)
@@ -150,3 +177,15 @@ def eliminar_imagen_y_patches(imagen_id):
     conn.close()
 
     print(f"✅ Imagen con ID {imagen_id} y sus parches eliminados.")
+
+def obtener_ruta_local(id: int):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT ruta_local FROM imagen_normalizada WHERE id = %s", (id,))
+    resultado = cur.fetchone()
+    cur.close()
+    conn.close()
+    if resultado:
+        ruta = resultado[0].replace("\\", "/")  # <- corrige las rutas si tienen backslash
+        return ruta
+    return None
