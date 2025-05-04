@@ -45,15 +45,6 @@ source .venv/bin/activate    # Linux/macOS
 # Instalar dependencias
 pip install -r requirements.txt
 
-
-# Crea un archivo .env en la raíz del proyecto con lo siguiente:
-
-DB_NAME=defaultdb
-DB_USER=avnadmin
-DB_PASSWORD=TU_PASSWORD
-DB_HOST=pg-tuhost.aivencloud.com
-DB_PORT=12345
-
 # Ejecutar la API
 
 uvicorn app.main:app --reload
