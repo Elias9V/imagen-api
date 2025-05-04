@@ -43,10 +43,11 @@ def insertar_parche(imagen_id, nombre_parche, ruta_local):
 
 def guardar_en_bd(ruta_normalizada, carpeta_patches):
     nombre_archivo = os.path.basename(ruta_normalizada)
+    ruta_normalizada = ruta_normalizada.replace("\\", "/")
     imagen_id = insertar_imagen(nombre_archivo, ruta_normalizada)
 
     for patch_name in sorted(os.listdir(carpeta_patches)):
-        ruta_patch = os.path.join(carpeta_patches, patch_name)
+        ruta_patch = os.path.join(carpeta_patches, patch_name).replace("\\", "/")
         insertar_parche(imagen_id, patch_name, ruta_patch)
 
     print(f"✅ Guardado en BD: Imagen ID {imagen_id}, {len(os.listdir(carpeta_patches))} parches")
