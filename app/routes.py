@@ -29,8 +29,8 @@ def descargar_parche(id: int):
         headers={"Content-Disposition": f"attachment; filename={nombre_parche}"}
     )
 
-@router.get("/descargar/{id}")
-def descargar_archivo_desde_bd(id: int):
+@router.get("/descargar_normalizado/{id}")
+def descargar_normalizado(id: int):
     resultado = obtener_archivo_binario(id)
     if not resultado:
         return {"status": "error", "mensaje": "❌ Archivo no encontrado."}
