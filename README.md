@@ -56,7 +56,6 @@ uvicorn app.main:app --reload
 Método	    Ruta	            Descripción
 POST	    /procesar	        Descarga, normaliza, parchea y almacena imagen .tif
 GET	        /listar	            Lista todas las imágenes normalizadas con parches
-GET	        /buscar/{nombre}	Busca imágenes por nombre (parcial o exacto)
 GET	        /buscar_por_id/{id}	Busca imagen y sus parches por ID
 DELETE	    /eliminar/{id}	    Elimina imagen y todos sus parches por ID
 
