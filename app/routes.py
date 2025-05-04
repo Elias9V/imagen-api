@@ -7,8 +7,18 @@ from app.services.normalizer import normalizar_tif
 from app.services.patcher import generar_patches
 from app.services.cleaner import eliminar_archivo_si_existe, eliminar_directorio_si_existe
 from app.db.crud import guardar_en_bd, listar_imagenes, eliminar_imagen_y_patches, buscar_imagen_por_id
+from app.services.generator import generar_y_exportar_imagen
+from app.db.request_models import ImagenRequest
 
 router = APIRouter()
+
+@router.post("/generar_imagen")
+def generar_imagen(req: ImagenRequest):
+    return generar_y_exportar_imagen(
+        fecha_inicio=req.fecha_inicio,
+        fecha_fin=req.fecha_fin,
+        coordenadas=req.coordenadas
+    )
 
 @router.post("/procesar")
 def procesar_pipeline():

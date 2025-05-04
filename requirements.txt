@@ -1,10 +1,11 @@
 fastapi
 uvicorn[standard]
 python-dotenv
+earthengine-api
 psycopg2-binary
 rasterio
 scikit-learn
 google-api-python-client
 google-auth
 google-auth-oauthlib
-pydantic
+pydantic    

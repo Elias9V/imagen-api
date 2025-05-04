@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.routes import router
 from app.services.cleaner import limpiar_directorios_temporales
+from app.db.models import crear_tablas 
 
 app = FastAPI(
     title="API CNN-LSTM para Procesamiento de Imágenes .tif",

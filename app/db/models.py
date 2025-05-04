@@ -1,12 +1,10 @@
-# models.py
-# Este módulo define las estructuras base de las tablas (si deseas recrearlas desde código)
-
 from app.db.connection import get_connection
 
 def crear_tablas():
     conn = get_connection()
     cur = conn.cursor()
 
+    # Tabla de imágenes normalizadas
     cur.execute("""
         CREATE TABLE IF NOT EXISTS imagen_normalizada (
             id SERIAL PRIMARY KEY,
@@ -16,6 +14,7 @@ def crear_tablas():
         );
     """)
 
+    # Tabla de parches generados
     cur.execute("""
         CREATE TABLE IF NOT EXISTS parche (
             id SERIAL PRIMARY KEY,
