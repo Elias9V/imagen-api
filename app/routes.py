@@ -2,17 +2,47 @@
 
 import io
 import os
+from zipfile import ZipFile
+from io import BytesIO
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from app.services.drive_service import descargar_ultimo_tif_drive
 from app.services.normalizer import normalizar_tif
 from app.services.patcher import generar_patches
 from app.services.cleaner import eliminar_archivo_si_existe, eliminar_directorio_si_existe
-from app.db.crud import guardar_en_bd, listar_imagenes, eliminar_imagen_y_patches, buscar_imagen_por_id, obtener_archivo_binario, obtener_parche_binario
+from app.db.crud import (
+    guardar_en_bd, 
+    listar_imagenes, 
+    eliminar_imagen_y_patches, 
+    buscar_imagen_por_id, 
+    obtener_archivo_binario, 
+    obtener_parche_binario,
+    obtener_patches_binarios_por_imagen_id)
 from app.services.generator import generar_y_exportar_imagen
 from app.db.request_models import ImagenRequest
 
 router = APIRouter()
+
+@router.get("/descargar_parches_zip/{imagen_id}")
+def descargar_parches_zip(imagen_id: int):
+    parches = obtener_patches_binarios_por_imagen_id(imagen_id)
+
+    if not parches:
+        raise HTTPException(status_code=404, detail="❌ No se encontraron parches para esta imagen.")
+
+    zip_buffer = BytesIO()
+    with ZipFile(zip_buffer, "w") as zip_file:
+        for nombre, contenido in parches:
+            zip_file.writestr(nombre, contenido)
+
+    zip_buffer.seek(0)
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f"attachment; filename=parches_imagen_{imagen_id}.zip"
+        }
+    )
 
 @router.get("/descargar_parche/{id}")
 def descargar_parche(id: int):

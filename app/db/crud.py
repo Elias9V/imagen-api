@@ -67,6 +67,17 @@ def obtener_parche_binario(parche_id):
     conn.close()
     return resultado
 
+def obtener_patches_binarios_por_imagen_id(imagen_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT nombre_parche, archivo FROM parche
+        WHERE imagen_normalizada_id = %s;
+    """, (imagen_id,))
+    resultados = cur.fetchall()
+    cur.close()
+    conn.close()
+    return resultados
 
 def guardar_en_bd(ruta_normalizada, carpeta_patches):
     nombre_archivo = os.path.basename(ruta_normalizada)
